@@ -3,29 +3,34 @@
 #include "rsa.h"
 #include "../math/algorithms.h"
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+int primes[] = {
+    2, 3, 5, 7, 19, 23, 43
+};
+
 void RSA_keygen(int* publicKey, int* privateKey, int* n) {
     // Choose random primes p, q
-    int p = rand();
-    int q = rand();
-
+    int p = RSA_random_prime(primes, ARRAY_SIZE(primes));
+    int q = RSA_random_prime(primes, ARRAY_SIZE(primes));
 
     int modulus = p * q;
-    int totient = ((p - 1) * (q - 1)) % modulus;
+    int totient = ((p - 1) * (q - 1));
 
-    int e = RSA_generate_random_public_key(totient); 
-    int d = RSA_generate_random_secret_key(e, modulus);
+    int e = RSA_generate_random_public_key(totient, modulus); 
+    int d = RSA_generate_random_secret_key(e, totient);
 
     *n = modulus;
     *publicKey = e;
     *privateKey = d;
 }
 
-void RSA_encrypt(const int* message, const int* cipher, const int* publicKey, const int* n) {
-
+void RSA_encrypt(const int* message, int* cipher, const int* publicKey, const int* n) {
+    *cipher = RSA_fast_power(*message, *publicKey, *n);
 }
 
-void RSA_decrypt(const int* cipher, const int* message, const int* privateKey) {
-
+void RSA_decrypt(const int* cipher, int* message, const int* privateKey, const int* n) {
+    *message = RSA_fast_power(*cipher, *privateKey, *n);
 }
 
 int RSA_generate_random_public_key(int totient) {
@@ -35,17 +40,17 @@ int RSA_generate_random_public_key(int totient) {
         coprime = rand();
     } while (gcd(totient, coprime) != 1);
 
-    return coprime;
+    return coprime % totient;
 }
 
-int RSA_generate_random_secret_key(int publicKey, int n) {
+int RSA_generate_random_secret_key(int publicKey, int totient) {
     int secret;
 
     do {
         secret = rand();
-    } while (((secret * publicKey) % n) != 1);
+    } while (((secret * publicKey) % totient) != 1);
 
-    return secret;
+    return secret % totient;
 }
 
 int RSA_miller_test(int d, int n) {
@@ -97,4 +102,9 @@ int RSA_fast_power(int x, unsigned int y, int p) {
     }
 
     return res;
+}
+
+int RSA_random_prime(const int* primes, unsigned int primes_length) {
+    int index = rand() % primes_length;
+    return primes[index];
 }

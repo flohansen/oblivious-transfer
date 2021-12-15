@@ -11,7 +11,3 @@ int gcd(int a, int b) {
     }
     return a;
 }
-
-int random_prime() {
-    int prime = rand();
-}
