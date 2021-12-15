@@ -20,32 +20,81 @@ void RSA_keygen(int* publicKey, int* privateKey, int* n) {
     *privateKey = d;
 }
 
-void RSA_encrypt(const int* message, const int* publicKey, const int* n) {
+void RSA_encrypt(const int* message, const int* cipher, const int* publicKey, const int* n) {
 
 }
 
-void RSA_decrypt(const int* cipher, const int* privateKey) {
+void RSA_decrypt(const int* cipher, const int* message, const int* privateKey) {
 
 }
 
-int RSA_generate_random_public_key(int number) {
-    printf("Searching for a random number, which is co-prime to %d...\n", number);
-    int coprime = rand();
+int RSA_generate_random_public_key(int totient) {
+    int coprime;
 
-    while (gcd(number, coprime) != 1) {
+    do {
         coprime = rand();
-    }
+    } while (gcd(totient, coprime) != 1);
 
-    printf("Found co-prime: %d!\n", coprime);
     return coprime;
 }
 
 int RSA_generate_random_secret_key(int publicKey, int n) {
-    int secret = rand();
+    int secret;
 
-    while (((secret * publicKey) % n) != 1) {
+    do {
         secret = rand();
-    }
+    } while (((secret * publicKey) % n) != 1);
 
     return secret;
+}
+
+int RSA_miller_test(int d, int n) {
+    int a = 2 + rand() % (n - 4); 
+    int x = RSA_fast_power(a, d, n); // a^d mod n
+
+    if (x == 1 || x == n-1)
+        return 1;
+
+    while (d != n-1) {
+        x = (x * x) % n;
+        d *= 2;
+
+        if (x == 1) return 0;
+        else if (x == n-1) return 1;
+    }
+
+    return 0;
+}
+
+int RSA_is_prime(int n, int k) {
+    // Find d such that n = 2^r * d + 1 for some r >= 1
+    int d = n - 1;
+    while (d % 2 == 0)
+        d /= 2;
+
+    for (int i = 0; i < k; i++)
+        if (!RSA_miller_test(d, n))
+            return 0;
+
+    return 1;
+}
+
+int RSA_fast_power(int x, unsigned int y, int p) {
+    // Initialize the result
+    int res = 1;
+
+    // Make sure x is modulus p
+    x = x % p;
+
+    while (y > 0) {
+        // If y is odd, multiply x with the result
+        if (y % 2 != 0)
+            res = (res * x) % p;
+
+        // Now y must be even
+        y = y / 2;
+        x = (x*x) % p;
+    }
+
+    return res;
 }
