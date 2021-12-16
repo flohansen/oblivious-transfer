@@ -17,7 +17,7 @@ void RSA_keygen(int* publicKey, int* privateKey, int* n) {
     int modulus = p * q;
     int totient = ((p - 1) * (q - 1));
 
-    int e = RSA_generate_random_public_key(totient, modulus); 
+    int e = RSA_generate_random_public_key(totient); 
     int d = RSA_generate_random_secret_key(e, totient);
 
     *n = modulus;
